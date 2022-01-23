@@ -1,0 +1,25 @@
+########################
+# pwserver.props
+########################
+## for soap server
+wsdlSoapBindingStyle=document
+pwsSoapExecutionStyle=process
+pwsOSProcessPrefix=sh -c
+###################################################
+## Cellarmasters Langtons
+dashBoardName=Baby Bunting Live
+logFullInputString=yes
+externalErrorProcess=scripts/failing
+###################################################
+# for HttpService to allow huge messages
+MaxEntityBodySize=40000000
+## 5 messages
+/NewItemToWMS.Action=scripts/GeneralReceive.langtons NewItemToWMS HCT001.RCVE.XML.SOAP ITV
+/NewItemToWMS.Wsdl=xmls/NewItemToWMS.wsdl
+/CustomerToWMS.Action=scripts/GeneralReceive.langtons CustomerToWMS HCT001.RCVE.XML.SOAP ITV
+/CustomerToWMS.Wsdl=xmls/CustomerToWMS.wsdl
+/PurchaseOrderToWMS.Action=scripts/GeneralReceive.langtons PurchaseOrderToWMS HCT001.RCVE.XML.SOAP ITV
+/PurchaseOrderToWMS.Wsdl=xmls/PurchaseOrderToWMS.wsdl
+/SalesOrderToWMS.Action=scripts/GeneralReceive.langtons SalesOrderToWMS HCT001.RCVE.XML.SOAP ITV
+/SalesOrderToWMS.Wsdl=xmls/SalesOrderToWMS.wsdl
+###################################################

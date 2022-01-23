@@ -21,9 +21,14 @@ import java.io.Writer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.soap.SOAPFactory;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.MessageFactory;
 
 // import org.apache.xmlbeans.XmlException;
 import org.w3c.dom.Document;
+import org.xml.sax.XMLReader;
 
 public class SoapServlet extends HttpServlet {
 
@@ -40,53 +45,70 @@ public class SoapServlet extends HttpServlet {
    public void doPost(HttpServletRequest request, HttpServletResponse response)
          throws ServletException, IOException {
       PrintWriter out = response.getWriter();
-      out.println("SoapServlet is Running at " + LocalDateTime.now());
-      out.println("Request action is " + request.getHeader("SOAPAction"));
-      out.println("Request body " + handleSoapMessage(request));
+      PropertyManager pm = new PropertyManager("pwserver");
+      String soapAction = request.getHeader("SOAPAction");
+      String scriptAction = pm.get(soapAction + ".Action");
+      String shellAction = pm.get("pwsOSProcessPrefix") + " " + scriptAction;
+      if (scriptAction.length() > 0) {
+         out.println("SoapServlet is Running at " + LocalDateTime.now());
+         out.println("Request action is " + soapAction);
+         out.println("Shell action is " + shellAction);
+         out.println("Request body " + getMessageBody(request));
 
-      // response.setContentType("text/xml");
-      // response.setCharacterEncoding("UTF-8");
-      // response.getWriter().write(handleSoapMessage(request));
-      out.flush();
-      out.close();
+         //<<todo>>
+         // get soap body
+         // check namespace
+         // write to file ./tmp/soapAction_99999.xml
+         // invoke script
+         // return response from script
+         // add other message types
+         // logging
+         //<</todo>>
+
+         // response.setContentType("text/xml");
+         // response.setCharacterEncoding("UTF-8");
+         // response.getWriter().write(handleSoapMessage(request));
+         out.flush();
+         out.close();
+      }
+   }
+
+   private String getMessageBody(HttpServletRequest request){
+      StringBuffer jb = new StringBuffer();
+      String line = null;
+      String returnString = null;
+      try {
+         BufferedReader reader = request.getReader();
+         while ((line = reader.readLine()) != null)
+         jb.append(line + System.lineSeparator());
+         returnString = jb.toString();
+      } catch (Exception e) {
+         returnString = "Exception " + e;
+      }
+      return returnString;
    }
 
    private String handleSoapMessage(HttpServletRequest request) {
       String returnString = null;
-      StringBuffer jb = new StringBuffer();
-      String line = null;
+      // System.setProperty("jakarta.xml.soap.SAAJMetaFactory",
+      // "com.sun.xml.messaging.saaj.soap.SAAJMetaFactoryImpl");
+
       try {
-        BufferedReader reader = request.getReader();
-        while ((line = reader.readLine()) != null)
-          jb.append(line);
-          returnString = jb.toString();
-      } catch (Exception e) { 
-         returnString = "Exception " + e;
+         InputStream inputStream = request.getInputStream();
+         SOAPMessage message = MessageFactory.newInstance().createMessage(null, inputStream);
+         Document document = message.getSOAPBody().extractContentAsDocument();
+
+         // FileWriter output = new FileWriter("");
+
+         returnString = document.getTextContent();
+      } catch (Exception e) {
+         returnString = "Exception " + e.getMessage();
       }
-    
-      // try {
-      //   JSONObject jsonObject =  HTTP.toJSONObject(jb.toString());
-      // } catch (JSONException e) {
-      //   // crash and burn
-      //   throw new IOException("Error parsing JSON request string");
-      // }
-      // try {
-      //    StringBuffer sb = new StringBuffer();
-      //    InputStream inputStream = request.getInputStream();
-      //    DocumentBuilderFactory docFactory = null;
-      //    DocumentBuilder docBuilder = null;
-      //    Document document = null;
-      //    docFactory = DocumentBuilderFactory.newInstance();
-      //    docBuilder = docFactory.newDocumentBuilder();
-      //    document = docBuilder.parse(inputStream);
-         // returnString = document.getTextContent();
-      // } catch (Exception e) {
-      //    returnString = "Exception " + e;
-      // }
       // } finally {
-         // returnString = "Request xml generated Parsed successfully";
-         return returnString;
+      // returnString = "Request xml generated Parsed successfully";
+      return returnString;
       // }
 
    }
+
 }
