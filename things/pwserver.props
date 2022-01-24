@@ -15,6 +15,7 @@ externalErrorProcess=scripts/failing
 MaxEntityBodySize=40000000
 ## 5 messages
 /NewItemToWMS.Action=scripts/GeneralReceive.langtons NewItemToWMS HCT001.RCVE.XML.SOAP ITV
+#/NewItemToWMS.Action=scripts/GeneralReceive.langtons NewItemToWMS HCT001.RCVE.XML.SOAP ITV
 /NewItemToWMS.Wsdl=xmls/NewItemToWMS.wsdl
 /CustomerToWMS.Action=scripts/GeneralReceive.langtons CustomerToWMS HCT001.RCVE.XML.SOAP ITV
 /CustomerToWMS.Wsdl=xmls/CustomerToWMS.wsdl

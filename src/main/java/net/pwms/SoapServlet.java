@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 // import java.io.IOException;
 import java.io.Writer;
@@ -33,6 +34,10 @@ import org.xml.sax.XMLReader;
 public class SoapServlet extends HttpServlet {
 
    private static final long serialVersionUID = 1L;
+   private static final long pid = ProcessHandle.current().pid();
+   private static final String tempDir = "tmp";
+   private static final String rescDir = "things";
+   private long transactionId = 0;
 
    public void doGet(HttpServletRequest request, HttpServletResponse response)
          throws ServletException, IOException {
@@ -42,28 +47,32 @@ public class SoapServlet extends HttpServlet {
       out.close();
    }
 
-   public void doPost(HttpServletRequest request, HttpServletResponse response)
-         throws ServletException, IOException {
+   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
       PrintWriter out = response.getWriter();
-      PropertyManager pm = new PropertyManager("pwserver");
+      PropertyManager pm = new PropertyManager(SoapServlet.rescDir + "/pwserver");
       String soapAction = request.getHeader("SOAPAction");
       String scriptAction = pm.get(soapAction + ".Action");
       String shellAction = pm.get("pwsOSProcessPrefix") + " " + scriptAction;
-      if (scriptAction.length() > 0) {
-         out.println("SoapServlet is Running at " + LocalDateTime.now());
+
+      if (scriptAction.length() > 0) { // valid message type
+         String requestBody = getMessageBody(request);
+         out.println("SoapServlet is Running on pid " + SoapServlet.pid + " at " + LocalDateTime.now());
+         out.println("SoapServlet request # " + ++this.transactionId);
          out.println("Request action is " + soapAction);
          out.println("Shell action is " + shellAction);
-         out.println("Request body " + getMessageBody(request));
+         out.println("Request body:");
+         out.print(requestBody);
+         writeMessageToFile(requestBody, soapAction);
 
-         //<<todo>>
-         // get soap body
+         // <<todo>>
+         // get soap body better
          // check namespace
-         // write to file ./tmp/soapAction_99999.xml
+         // write to file ./tmp/soapAction_99999.xml better
          // invoke script
          // return response from script
          // add other message types
          // logging
-         //<</todo>>
+         // <</todo>>
 
          // response.setContentType("text/xml");
          // response.setCharacterEncoding("UTF-8");
@@ -73,19 +82,41 @@ public class SoapServlet extends HttpServlet {
       }
    }
 
-   private String getMessageBody(HttpServletRequest request){
+   private String getMessageBody(HttpServletRequest request) {
       StringBuffer jb = new StringBuffer();
       String line = null;
       String returnString = null;
+      boolean appendFlag = false;
       try {
          BufferedReader reader = request.getReader();
-         while ((line = reader.readLine()) != null)
-         jb.append(line + System.lineSeparator());
+         while ((line = reader.readLine()) != null) {
+            if (line.toLowerCase().contains(":body>"))
+               appendFlag ^= true; // toggle flag
+            else {
+               if (appendFlag)
+                  jb.append(line + System.lineSeparator());
+            }
+         }
          returnString = jb.toString();
       } catch (Exception e) {
          returnString = "Exception " + e;
       }
       return returnString;
+   }
+
+   private void writeMessageToFile(String body, String name) {
+      StringBuilder fileName = new StringBuilder(SoapServlet.tempDir);
+      fileName.append(name);
+      fileName.append("_");
+      fileName.append(SoapServlet.pid + this.transactionId);
+      fileName.append("_in.xml");
+      try {
+         PrintWriter pw = new PrintWriter(fileName.toString());
+         pw.write(body);
+         pw.close();
+      } catch (IOException e) {
+         System.out.println("Exception:" + e);
+      }
    }
 
    private String handleSoapMessage(HttpServletRequest request) {

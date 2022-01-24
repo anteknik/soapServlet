@@ -1,0 +1,240 @@
+#!/bin/ksh
+#
+# vi: set ai ts=4 sw=4:
+# vim:et
+############################################
+#
+#### GeneralReceive.langtons
+#  script to extract routing info from an inbound xml,
+#  then fire off a backend executable for the matched account to read in, process, and write out xml
+#   warning: it's hardwired for Langtons, with 0-field content-based routing
+#
+# HISTORY
+#########
+#   Nov 2009  original with account routing based on lnsitenbr
+#   Mar 2010  bail when lnsitenbr not found in xml; instead of going on to use 1st entry in .cnf
+#   Apr 2010  export JBASE_SVR_SESSION=0 to cope with mass surges of 1000's of txns
+#   Aug 2010  with account routing based on both domain and lnsitenbr
+#   Sep 2010  merge in mod to take backend progname from inbound arguments
+#
+# some typical .cnf lines are:
+#   LNSiteNbr=BM1:/home/pw/DEMO_HOME:JBCLOGNAME=DEMO:MR=MR2 /home/pw/scripts/.demoprof
+# so the first colon-separated field is the dotted concatenation of the routing info
+#
+# . in the Paperless environment
+# GeneralReceive.langtons $*
+############################################
+
+progname=$(basename $0)
+progbase=$(basename $progname .ksh)
+if echo $0 | grep -q /
+then
+    fullprog=$0
+else
+    fullprog=$(whence $progname)
+fi
+progdir=$(dirname $fullprog)
+export fullprog
+
+request=$1
+shift
+reqprog=HCT001.RCVE.XML.SOAP
+reqprogargs=
+reqargc=$#
+if [ $reqargc -gt 0 ]
+then
+    reqprog=$1
+    shift
+    if [ $reqargc -gt 0 ]
+    then
+        reqprogargs=$1
+        shift
+    fi
+fi
+
+export xmltmpdir=${PWHOME:-/home/pw}/tmp
+xmlinfile=${request}_$$
+export xmloutfile=${xmlinfile}_out.xml
+export xmlinfile=${xmlinfile}_in.xml
+
+############################################################
+function errout
+{
+    printf "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    printf "<ERROR>failed before producing useful diagnostics in $fullprog</ERROR>\n"
+}
+
+function badlnsitenbrout
+{
+    domain=$1
+    lnsitenbr=$2
+    conf=$3
+    printf "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    printf "<ERROR>$fullprog cannot match Domain=$domain LNSiteNbr=$lnsitenbr from config file $conf</ERROR>\n"
+}
+
+function nolnsitenbrout
+{
+    whatever=$1
+    printf "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    printf "<ERROR>$fullprog got an empty $whatever from xml input file $xmlinfile</ERROR>\n"
+}
+
+function badfileout
+{
+    outfile=$1
+    printf "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    printf "<ERROR>"
+    cat -v $outfile
+    printf "</ERROR>\n"
+}
+
+function wrapup
+{
+    cat $xmltmpdir/$xmloutfile
+    perl -e 'select( undef, undef, undef, 0.1 )' ## usleep 100000
+    rm -f $xmltmpdir/$xmlinfile $xmltmpdir/$xmloutfile
+}
+
+###################################
+function hct001
+{
+    reqprog=$1
+    request=$2
+    where=$3
+    who=$4
+    reqprogargs=$5
+    shift 5
+    precmd=
+    while [ $# -gt 1 ]
+    do
+        if [ -z "$precmd" ]
+        then
+            precmd=$1
+        else
+            precmd="$precmd $1"
+        fi
+        shift
+    done
+    what=$1
+    stat=0
+    JRUNCMD="jsh -c \"$reqprog $reqprogargs/$request $xmltmpdir $xmlinfile $xmloutfile\""
+    echo JRUNCMD=$JRUNCMD >&2
+    (
+        cd $where
+        export JBCLOGNAME=$who
+        #export JBASE_SVR_SESSION=0
+        export JBASE_DYNAMIC_MULTISESSION=1
+        unset JBCDEV_BIN
+        unset JBCRELEASEDIR
+        # . /home/pw/scripts/env.ksh 4
+        . /home/pw/scripts/env.ksh 5
+        if [ -n "$precmd" ]
+        then
+            eval "$precmd"
+        fi
+        . $what
+    ) > /home/pw/tmp/${request}_$$ 2>&1
+    stat=$?
+    if [ $stat -ne 0 ]
+    then
+        badfileout /home/pw/tmp/${request}_$$ > $xmltmpdir/$xmloutfile
+    else
+        if grep -q "failed before producing useful" $xmltmpdir/$xmloutfile
+        then
+            badfileout /home/pw/tmp/${request}_$$ > $xmltmpdir/$xmloutfile
+        fi
+    fi
+    rm -f /home/pw/tmp/${request}_$$
+    return $stat
+}
+############################################################
+
+errout > $xmltmpdir/$xmloutfile
+
+trap wrapup EXIT
+
+# get the info we need for account routing based on lnsitenbr
+tee $xmltmpdir/$xmlinfile > /dev/null
+ls -lt $xmltmpdir/$xmlinfile >&2
+lnsitenbr=BM1
+lnsitenbrstat=0
+domain=any
+domainstat=0
+
+perl -e 'select( undef, undef, undef, 0.1 )' ## usleep 100000
+
+###################################
+if [ $lnsitenbrstat -eq 0 -a $domainstat -eq 0 ]
+then
+    conf=${progbase}.cnf
+    tryconf=
+    stat=0
+
+    tryconf=$progdir/$conf
+    if [ -r $tryconf ]
+    then
+        conf=$tryconf
+    else
+        echo "file $tryconf cannot be read" >&2
+        stat=2
+    fi
+
+    if [ -z "$lnsitenbr" ]
+    then
+        nolnsitenbrout "lnsitenbr" > $xmltmpdir/$xmloutfile
+        stat=3
+    fi
+    if [ -z "$domain" ]
+    then
+        nolnsitenbrout "domain" > $xmltmpdir/$xmloutfile
+        stat=4
+    fi
+
+    ###################################
+    if [ $stat -eq 0 ]
+    then
+        # strip comments and non-acct lines
+        pipeline="grep -vE "^#" $conf | grep JBCLOGNAME="
+        # match on routing info
+        pipeline="$pipeline | grep -Ei \"^LNSiteNbr=$lnsitenbr:\""
+        pipeout=$(eval "$pipeline")
+        if [ $? -eq 0 -a -n "$pipeout" ]
+        then
+            # from first matching line, extract the account fields
+            echo "$pipeout" | head -n 1 | IFS=: read routeinfo dir jbclogname script
+        else
+            routeinfo=
+        fi
+        if [ -z "$routeinfo" ]
+        then
+            badlnsitenbrout "$domain" "$lnsitenbr" "$conf" > $xmltmpdir/$xmloutfile
+        else
+            # finally run the thingy
+            logname=$(echo $jbclogname | cut -d= -f2)
+            cmd="hct001 $reqprog $request $dir $logname $reqprogargs $script"
+            echo "$cmd" >&2
+            eval "$cmd"
+        fi
+    fi
+###################################
+# if any call to soap2lnsitenbr.pl failed, we should have an error in its variables
+elif [ $lnsitenbrstat -ne 0 -a $domainstat -eq 0 ]
+then
+    echo "funny lnsitenbr result=$lnsitenbr" > $xmltmpdir/$xmloutfile
+elif [ $lnsitenbrstat -eq 0 -a $domainstat -ne 0 ]
+then
+    echo "funny domain result=$domain" > $xmltmpdir/$xmloutfile
+else ## they both failed
+    echo "funny lnsitenbr result=$lnsitenbr" > $xmltmpdir/$xmloutfile
+    echo "funny domain result=$domain" >> $xmltmpdir/$xmloutfile
+fi
+exit
+############################################################
+# for a good test,
+#   echo "<ANSWER>lnsitenbr=$lnsitenbr lnsitenbrstat=$lnsitenbrstat request=$request xmlinfile=$xmlinfile</ANSWER>" >&2
+
+# until we have good stuff, use this
+#    cat $PWSOAPSVRHOME/pwservs/scripts/pwACKPURCHforWMS.xml > $xmltmpdir/$xmloutfile
+############################################################
+############################################################
