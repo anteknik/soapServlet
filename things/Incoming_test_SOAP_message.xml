@@ -1,0 +1,18 @@
+<?xml version = "1.0"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV = "http://www.w3.org/2001/12/soap-envelope" 
+   SOAP-ENV:encodingStyle = "http://www.w3.org/2001/12/soap-encoding">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <NewItemToWMS xmlns="http://www.paperless-warehousing.com/Langtons/NewItemToWMS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <Header xmlns="">
+                <NumberOfDetails>1</NumberOfDetails>
+            </Header>
+            <Detail xmlns="">
+                <DetailSequenceNum>1</DetailSequenceNum>
+                <ProductCode>00001AKFB</ProductCode>
+                <ProductDescription>ALKINA Kin Field Blend Red BarossaValley</ProductDescription>
+                <ProductMobileDescription>ALKINA Kin Field Ble</ProductMobileDescription>
+            </Detail>
+        </NewItemToWMS>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -62,18 +62,17 @@ public class SoapServlet extends HttpServlet {
          out.println("Shell action is " + shellAction);
          out.println("Request body:");
          out.print(requestBody);
-         writeMessageToFile(requestBody, soapAction);
+         // writeMessageToFile(requestBody, soapAction);
+         // stream body to stdout
          out.println("Shell Action result:");
          out.print(invokeShellAction(shellAction));
 
          // <<todo>>
-         // get soap body better
+         // * get soap body better
          // check namespace
-         // write to file ./tmp/soapAction_99999.xml better
-         // invoke script
-         // return response from script
          // add other message types
-         // logging
+         // logging - l4j
+         // * buiuld to single jar with embedded servlet
          // <</todo>>
 
          // response.setContentType("text/xml");
