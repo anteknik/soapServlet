@@ -4,7 +4,8 @@
 ## for soap server
 wsdlSoapBindingStyle=document
 pwsSoapExecutionStyle=process
-pwsOSProcessPrefix=sh -c
+pwsOSProcessPrefix=pwsh -c
+#pwsOSProcessPrefix=sh -c
 ###################################################
 ## Cellarmasters Langtons
 dashBoardName=Baby Bunting Live
@@ -14,7 +15,7 @@ externalErrorProcess=scripts/failing
 # for HttpService to allow huge messages
 MaxEntityBodySize=40000000
 ## 5 messages
-/NewItemToWMS.Action=scripts/GeneralReceive.langtons NewItemToWMS HCT001.RCVE.XML.SOAP ITV
+/NewItemToWMS.Action=things/receiveTest.ps1 NewItemToWMS HCT001.RCVE.XML.SOAP ITV
 #/NewItemToWMS.Action=scripts/GeneralReceive.langtons NewItemToWMS HCT001.RCVE.XML.SOAP ITV
 /NewItemToWMS.Wsdl=xmls/NewItemToWMS.wsdl
 /CustomerToWMS.Action=scripts/GeneralReceive.langtons CustomerToWMS HCT001.RCVE.XML.SOAP ITV
