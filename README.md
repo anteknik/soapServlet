@@ -24,4 +24,6 @@
 ### Deployment
 
 - (1) Run both PW Legacy Soap and New server in parallel to validate message receipt
+	... $ mvn clean jetty:run
+	
 - (2) Turn off PW Legacy Soap

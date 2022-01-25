@@ -34,9 +34,10 @@ import org.xml.sax.XMLReader;
 public class SoapServlet extends HttpServlet {
 
    private static final long serialVersionUID = 1L;
-   private static final long pid = ProcessHandle.current().pid();
+   //private static final long pid = ProcessHandle.current().pid();
    private static final String tempDir = "tmp";
-   private static final String rescDir = "things";
+   //private static final String rescDir = "things";
+   private static final String rescDir = "anton";
    private long transactionId = 0;
 
    public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -56,7 +57,7 @@ public class SoapServlet extends HttpServlet {
 
       if (scriptAction.length() > 0) { // valid message type
          String requestBody = getMessageBody(request);
-         out.println("SoapServlet is Running on pid " + SoapServlet.pid + " at " + LocalDateTime.now());
+//         out.println("SoapServlet is Running on pid " + SoapServlet.pid + " at " + LocalDateTime.now());
          out.println("SoapServlet request # " + ++this.transactionId);
          out.println("Request action is " + soapAction);
          out.println("Shell action is " + shellAction);
@@ -109,7 +110,7 @@ public class SoapServlet extends HttpServlet {
       StringBuilder fileName = new StringBuilder(SoapServlet.tempDir);
       fileName.append(name);
       fileName.append("_");
-      fileName.append(SoapServlet.pid + this.transactionId);
+//      fileName.append(SoapServlet.pid + this.transactionId);
       fileName.append("_in.xml");
       try {
          PrintWriter pw = new PrintWriter(fileName.toString());
