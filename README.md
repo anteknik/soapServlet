@@ -27,3 +27,29 @@
 	... $ mvn clean jetty:run
 	
 - (2) Turn off PW Legacy Soap
+
+### Testing
+
+    go to branch development
+
+    ... $ mvn clean jetty:run
+
+    ... try to access the endpoint : http://localhost:8080/services/NewItemToWMS
+
+
+    ... Request soap below
+/**
+         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:impl="http://webservices.pwms.net/">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <impl:newItemToWMS>
+         <DetailSequenceNum>1</DetailSequenceNum>
+                <ProductCode>00001AKFB</ProductCode>
+                <ProductDescription>ALKINA Kin Field Blend Red BarossaValley</ProductDescription>
+                <ProductMobileDescription>ALKINA Kin Field Ble</ProductMobileDescription>
+         </impl:newItemToWMS>
+        </soapenv:Body>
+        </soapenv:Envelope>
+     
+     */
+    ...

@@ -11,7 +11,7 @@ import net.pwms.webservices.Request;
 public class EndpointServer {
     
     public static void main(String[] args) {
-		Endpoint.publish("http://localhost:10000/NewItemToWMS", new Request());
+		Endpoint.publish("http://localhost:8181/NewItemToWMS", new Request());
 		System.out.println("Request Services Started!");
 	}
     /**
