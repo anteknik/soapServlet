@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 // import java.io.IOException;
 import java.io.Writer;
+import javax.servlet.annotation.WebServlet;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -31,13 +32,13 @@ import javax.xml.soap.MessageFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.XMLReader;
 
+@WebServlet()
 public class SoapServlet extends HttpServlet {
 
    private static final long serialVersionUID = 1L;
    //private static final long pid = ProcessHandle.current().pid();
    private static final String tempDir = "tmp";
-   //private static final String rescDir = "things";
-   private static final String rescDir = "anton";
+   private static final String rescDir = "things";
    private long transactionId = 0;
 
    public void doGet(HttpServletRequest request, HttpServletResponse response)
