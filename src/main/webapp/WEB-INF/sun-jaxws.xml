@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<endpoints
+	xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime" version="2.0">
+	<endpoint name="Request"
+		implementation="net.pwms.webservices.Request"
+		url-pattern="/services/NewItemToWMS" />
+
+	<endpoint name="RequestP"
+		implementation="net.pwms.webservices.Request"
+		url-pattern="/services/PurchaseOrderToWMS" />
+
+	<endpoint name="RequestC"
+		implementation="net.pwms.webservices.Request"
+		url-pattern="/services/CustomerToWMS" />
+
+	<endpoint name="RequestS"
+		implementation="net.pwms.webservices.Request"
+		url-pattern="/services/SalesOrderToWMS" />
+</endpoints>
