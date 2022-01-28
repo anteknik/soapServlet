@@ -30,7 +30,7 @@
 
 ### Testing
 
-    go to branch development
+    go to branch development with jdk 8
 
     ... $ mvn clean jetty:run
 
