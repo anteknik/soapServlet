@@ -1,7 +1,8 @@
 
 package net.pwms;
 
-import javax.xml.ws.Endpoint;
+
+import jakarta.xml.ws.Endpoint;
 import net.pwms.webservices.Request;
 
 /**

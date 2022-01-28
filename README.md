@@ -28,9 +28,9 @@
 	
 - (2) Turn off PW Legacy Soap
 
-### Testing
+### Testing (tested with jdk 11 & jdk 17  both LTS Version)
 
-    go to branch development with jdk 8
+    go to branch development 
 
     ... $ mvn clean jetty:run
 

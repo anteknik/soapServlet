@@ -7,10 +7,10 @@ import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.time.LocalDateTime;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,20 +19,18 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 // import java.io.IOException;
 import java.io.Writer;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.soap.SOAPFactory;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.MessageFactory;
+
+import jakarta.xml.soap.SOAPFactory;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.MessageFactory;
 
 // import org.apache.xmlbeans.XmlException;
 import org.w3c.dom.Document;
 import org.xml.sax.XMLReader;
 
-@WebServlet()
+@WebServlet(urlPatterns = "/NewItemToWMS")
 public class SoapServlet extends HttpServlet {
 
    private static final long serialVersionUID = 1L;
